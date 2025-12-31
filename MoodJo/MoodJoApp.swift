@@ -9,9 +9,11 @@ import SwiftUI
 
 @main
 struct MoodJoApp: App {
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            JournalListView()
         }
+        .environment(JournalEntryManager(local: JournalEntryPersistence()))
     }
 }
