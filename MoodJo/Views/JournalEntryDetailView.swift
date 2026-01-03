@@ -29,6 +29,8 @@ struct JournalEntryDetailView: View {
     
     @Namespace private var imageNamespace
     
+    @FocusState private var isAnyFieldFocused: Bool
+    
     var canSave: Bool {
         !text.isEmpty
     }
@@ -38,9 +40,6 @@ struct JournalEntryDetailView: View {
             ZStack {
                 backgroundGradient
                     .ignoresSafeArea()
-                    .onTapGesture {
-                        hideKeyboard()
-                    }
                 
                 Group {
                     if isEditing {
@@ -213,6 +212,7 @@ struct JournalEntryDetailView: View {
         Form {
             Section("Title") {
                 TextField("Give this day a title", text: $title)
+                    .focused($isAnyFieldFocused)
             }
             
             Section("How are you feeling?") {
@@ -222,6 +222,7 @@ struct JournalEntryDetailView: View {
             Section("What's on your mind?") {
                 TextEditor(text: $text)
                     .frame(minHeight: 150)
+                    .focused($isAnyFieldFocused)
             }
             
             Section("Photos") {
@@ -244,6 +245,7 @@ struct JournalEntryDetailView: View {
                 
                 HStack {
                     TextField("Add tag", text: $newTag)
+                        .focused($isAnyFieldFocused)
                         .onSubmit {
                             addTag()
                         }
@@ -255,6 +257,7 @@ struct JournalEntryDetailView: View {
                 }
             }
         }
+        .scrollDismissesKeyboard(.immediately)
         .scrollContentBackground(.hidden)
     }
     
@@ -299,14 +302,6 @@ struct JournalEntryDetailView: View {
     }
     
     // MARK: - Actions
-    private func hideKeyboard() {
-        UIApplication.shared.sendAction(
-            #selector(UIResponder.resignFirstResponder),
-            to: nil,
-            from: nil,
-            for: nil
-        )
-    }
     
     private func saveChanges() {
         do {

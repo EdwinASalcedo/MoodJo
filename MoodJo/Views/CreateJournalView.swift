@@ -33,8 +33,9 @@ struct CreateJournalView: View {
     @State private var errorMessage: String?
     @State private var showingError = false
     
+    @FocusState private var isAnyFieldFocused: Bool
+    
     var canSave: Bool {
-        // Text entry SHOULD be there
         !text.isEmpty
     }
     
@@ -43,9 +44,6 @@ struct CreateJournalView: View {
             ZStack {
                 backgroundGradient
                     .ignoresSafeArea()
-                    .onTapGesture {
-                        hideKeyboard()
-                    }
                 
                 Form {
                     Section {
@@ -65,13 +63,14 @@ struct CreateJournalView: View {
                             .datePickerStyle(.compact)
                         }
                     } header: {
-                        Text("When")
+                        Text("Date")
                     } footer: {
                         Text("Only one entry per day is allowed")
                     }
                     
                     Section("Title (Optional)") {
                         TextField("Give this day a title", text: $title)
+                            .focused($isAnyFieldFocused)
                     }
                     
                     Section("Mood (Optional)") {
@@ -81,6 +80,7 @@ struct CreateJournalView: View {
                     Section("What's on your mind?") {
                         TextEditor(text: $text)
                             .frame(minHeight: 150)
+                            .focused($isAnyFieldFocused)
                     }
                     
                     Section("Add Photos") {
@@ -103,6 +103,7 @@ struct CreateJournalView: View {
                         
                         HStack {
                             TextField("Add tag", text: $newTag)
+                                .focused($isAnyFieldFocused)
                                 .onSubmit {
                                     addTag()
                                 }
@@ -114,6 +115,7 @@ struct CreateJournalView: View {
                         }
                     }
                 }
+                .scrollDismissesKeyboard(.interactively)
                 .scrollContentBackground(.hidden)
             }
             .navigationTitle("New Entry")
@@ -181,15 +183,6 @@ struct CreateJournalView: View {
     }
     
     // MARK: - Actions
-    private func hideKeyboard() {
-        UIApplication.shared.sendAction(
-            #selector(UIResponder.resignFirstResponder),
-            to: nil,
-            from: nil,
-            for: nil
-        )
-    }
-    
     private func saveEntry() {
         do {
             // Save images and get file paths
