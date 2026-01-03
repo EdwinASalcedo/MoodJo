@@ -57,7 +57,7 @@ struct DateCellView: View {
                     Image(uiImage: image)
                         .resizable()
                         .scaledToFill()
-                        .frame(width: 55, height: 55)
+                        .frame(width: 60, height: 60)
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                 }
             } else {

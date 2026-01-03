@@ -2,7 +2,7 @@
 //  JournalListView.swift
 //  MoodJo
 //
-//  Created on 12/30/2024
+//  Created by Edwin Salcedo 1/3/2026
 //
 
 import SwiftUI

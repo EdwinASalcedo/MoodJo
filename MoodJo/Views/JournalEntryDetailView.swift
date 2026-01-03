@@ -5,14 +5,6 @@
 //  Created by Edwin Salcedo on 1/1/26.
 //
 
-
-//
-//  JournalEntryDetailView.swift
-//  MoodJo
-//
-//  Created on 12/30/2024
-//
-
 import SwiftUI
 import SwiftData
 
@@ -29,7 +21,13 @@ struct JournalEntryDetailView: View {
     @State private var selectedImages: [UIImage] = []
     @State private var tags: [String] = []
     @State private var newTag: String = ""
+    
     @State private var hasLoadedInitialData = false
+    @State private var showingImageViewer = false
+    @State private var selectedImageIndex = 0
+    @State private var loadedImages: [UIImage] = []
+    
+    @Namespace private var imageNamespace
     
     var canSave: Bool {
         !text.isEmpty
@@ -51,35 +49,49 @@ struct JournalEntryDetailView: View {
                         displayContent
                     }
                 }
+                
+                if showingImageViewer {
+                    FullScreenImageView(
+                        images: loadedImages,
+                        selectedIndex: $selectedImageIndex,
+                        isPresented: $showingImageViewer,
+                        namespace: imageNamespace
+                    )
+                    .zIndex(1)
+                }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .navigationTitle(entry.timestamp.formatted(date: .abbreviated, time: .omitted))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Close") {
-                        dismiss()
-                    }
-                }
-                if !isEditing {
-                    ToolbarItem(placement: .primaryAction) {
-                        Button("Edit") {
-                            startEditing()
+                if !showingImageViewer {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Close") {
+                            dismiss()
                         }
                     }
-                } else {
-                    ToolbarItem(placement: .primaryAction) {
-                        Button("Done") {
-                            saveChanges()
+                    if !isEditing {
+                        ToolbarItem(placement: .primaryAction) {
+                            Button("Edit") {
+                                startEditing()
+                            }
                         }
-                        .disabled(!canSave)
+                    } else {
+                        ToolbarItem(placement: .primaryAction) {
+                            Button("Done") {
+                                saveChanges()
+                            }
+                            .disabled(!canSave)
+                        }
                     }
                 }
             }
         }
         .onAppear {
             loadEntryData()
+            loadImagesForViewer()
         }
+        .interactiveDismissDisabled(showingImageViewer)
     }
     
     // MARK: - Display Mode
@@ -94,17 +106,29 @@ struct JournalEntryDetailView: View {
                         .fontWeight(.bold)
                 }
                 
-                if !entry.imagePath.isEmpty {
+                if !loadedImages.isEmpty {
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 12) {
-                            ForEach(entry.imagePath, id: \.self) { imagePath in
-                                if let image = MediaManager.shared.loadImage(from: imagePath) {
-                                    Image(uiImage: image)
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(width: 150, height: 200)
-                                        .clipShape(RoundedRectangle(cornerRadius: 16))
-                                }
+                            ForEach(Array(loadedImages.enumerated()), id: \.offset) { index, image in
+                                let isSelectedAndShowing = showingImageViewer && selectedImageIndex == index
+                                
+                                Image(uiImage: image)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 150, height: 200)
+                                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                                    .matchedGeometryEffect(
+                                        id: "image-\(index)",
+                                        in: imageNamespace,
+//                                        isSource: !isSelectedAndShowing
+                                    )
+                                    .opacity(isSelectedAndShowing ? 0 : 1)
+                                    .onTapGesture {
+                                        selectedImageIndex = index
+                                        withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                                            showingImageViewer = true
+                                        }
+                                    }
                             }
                         }
                     }
@@ -251,6 +275,10 @@ struct JournalEntryDetailView: View {
         }
     }
     
+    private func loadImagesForViewer() {
+        loadedImages = MediaManager.shared.loadImages(from: entry.imagePath)
+    }
+    
     private func startEditing() {
         loadEntryData()
         isEditing = true
@@ -296,6 +324,8 @@ struct JournalEntryDetailView: View {
                 moodColor: selectedMoodColor?.hexString,
                 tags: tags
             )
+            
+            loadImagesForViewer()
             isEditing = false
         } catch {
             print("Failed to save changes: \(error)")
