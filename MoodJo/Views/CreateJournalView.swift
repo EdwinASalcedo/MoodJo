@@ -27,6 +27,7 @@ struct CreateJournalView: View {
     @State private var title: String = ""
     @State private var text: String = ""
     @State private var selectedMoodColor: MoodColor?
+    @State private var selectedImages: [UIImage] = []
     @State private var tags: [String] = []
     @State private var newTag: String = ""
     @State private var errorMessage: String?
@@ -42,6 +43,9 @@ struct CreateJournalView: View {
             ZStack {
                 backgroundGradient
                     .ignoresSafeArea()
+                    .onTapGesture {
+                        hideKeyboard()
+                    }
                 
                 Form {
                     Section {
@@ -77,6 +81,10 @@ struct CreateJournalView: View {
                     Section("What's on your mind?") {
                         TextEditor(text: $text)
                             .frame(minHeight: 150)
+                    }
+                    
+                    Section("Add Photos") {
+                        PhotoPicker(selectedImages: $selectedImages, maxImages: 5)
                     }
                     
                     Section("Tags (Optional)") {
@@ -173,13 +181,25 @@ struct CreateJournalView: View {
     }
     
     // MARK: - Actions
+    private func hideKeyboard() {
+        UIApplication.shared.sendAction(
+            #selector(UIResponder.resignFirstResponder),
+            to: nil,
+            from: nil,
+            for: nil
+        )
+    }
     
     private func saveEntry() {
         do {
+            // Save images and get file paths
+            let imagePaths = MediaManager.shared.saveImages(selectedImages)
+            
             try manager.createEntry(
                 for: selectedDate,
                 title: title.isEmpty ? nil : title,
-                text: text.isEmpty ? nil : text,
+                text: text,
+                imagePath: imagePaths,
                 moodColor: selectedMoodColor?.hexString,
                 tags: tags
             )

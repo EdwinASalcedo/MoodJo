@@ -33,9 +33,34 @@
 		1D96EDFD2EFF2BAD000F7820 /* MoodJoUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MoodJoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		1D87A12D2F0876930037A354 /* Exceptions for "MoodJo" folder in "MoodJo" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"Extensions/View+EXT.swift",
+				Info.plist,
+			);
+			target = 1D96EDE52EFF2BAC000F7820 /* MoodJo */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		1D87A1302F08C48E0037A354 /* Exceptions for "MoodJo" folder in "Copy Bundle Resources" phase from "MoodJo" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = 1D96EDE42EFF2BAC000F7820 /* Resources */;
+			membershipExceptions = (
+				"Extensions/View+EXT.swift",
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		1D96EDE82EFF2BAC000F7820 /* MoodJo */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				1D87A12D2F0876930037A354 /* Exceptions for "MoodJo" folder in "MoodJo" target */,
+				1D87A1302F08C48E0037A354 /* Exceptions for "MoodJo" folder in "Copy Bundle Resources" phase from "MoodJo" target */,
+			);
 			path = MoodJo;
 			sourceTree = "<group>";
 		};
@@ -409,6 +434,10 @@
 				DEVELOPMENT_TEAM = 5N72SMB292;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MoodJo/Info.plist;
+				INFOPLIST_KEY_NSCameraUsageDescription = "\"MoodJo needs access to your camera to take photos for your journal entries\"";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "\"MoodJo needs permission to save your photos to your library\"";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "\"MoodJo needs access to your photo library to select photos for your journal entries\"";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -441,6 +470,10 @@
 				DEVELOPMENT_TEAM = 5N72SMB292;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MoodJo/Info.plist;
+				INFOPLIST_KEY_NSCameraUsageDescription = "\"MoodJo needs access to your camera to take photos for your journal entries\"";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "\"MoodJo needs permission to save your photos to your library\"";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "\"MoodJo needs access to your photo library to select photos for your journal entries\"";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

@@ -38,8 +38,8 @@ struct DateCellView: View {
                         .italic()
                 }
                 
-                if let text = entry.text, !text.isEmpty {
-                    Text(text)
+                if !entry.text.isEmpty {
+                    Text(entry.text)
                         .font(.callout)
                         .lineLimit(1)
                 }
@@ -50,10 +50,16 @@ struct DateCellView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             
-            if let imageName {
-                ImageLoaderView(urlString: imageName)
-                    .frame(width: 55, height: 60)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
+            if !entry.imagePath.isEmpty {
+                if let randomImagePath = entry.imagePath.randomElement(),
+                   let image = MediaManager.shared.loadImage(from: randomImagePath) {
+                    Spacer()
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 55, height: 55)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                }
             } else {
                 Spacer()
                 Rectangle()
@@ -82,7 +88,7 @@ struct DateCellView: View {
                         .font(.caption)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
-                        .background(.ultraThinMaterial.opacity(0.2))
+                        .background(.white.opacity(0.25))
                         .clipShape(Capsule())
                         .overlay(
                             Capsule()
@@ -127,3 +133,16 @@ struct DateCellView: View {
     }
 }
 
+#Preview("Dark mode") {
+    DateCellView(entry: JournalEntryEntity.mockEntries[0])
+        .preferredColorScheme(.dark)
+    DateCellView(entry: JournalEntryEntity.mockEntries[3])
+        .preferredColorScheme(.dark)
+    DateCellView(entry: JournalEntryEntity.mockEntries[2])
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Light mode") {
+    DateCellView(entry: JournalEntryEntity.mockEntries[0])
+        .preferredColorScheme(.light)
+}

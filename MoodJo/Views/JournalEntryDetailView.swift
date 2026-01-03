@@ -1,0 +1,374 @@
+//
+//  JournalEntryDetailView.swift
+//  MoodJo
+//
+//  Created by Edwin Salcedo on 1/1/26.
+//
+
+
+//
+//  JournalEntryDetailView.swift
+//  MoodJo
+//
+//  Created on 12/30/2024
+//
+
+import SwiftUI
+import SwiftData
+
+struct JournalEntryDetailView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Environment(JournalEntryManager.self) private var manager
+    
+    let entry: JournalEntryEntity
+    
+    @State private var isEditing = false
+    @State private var title: String = ""
+    @State private var text: String = ""
+    @State private var selectedMoodColor: MoodColor?
+    @State private var selectedImages: [UIImage] = []
+    @State private var tags: [String] = []
+    @State private var newTag: String = ""
+    @State private var hasLoadedInitialData = false
+    
+    var canSave: Bool {
+        !text.isEmpty
+    }
+    
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                backgroundGradient
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        hideKeyboard()
+                    }
+                
+                Group {
+                    if isEditing {
+                        editContent
+                    } else {
+                        displayContent
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .navigationTitle(entry.timestamp.formatted(date: .abbreviated, time: .omitted))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close") {
+                        dismiss()
+                    }
+                }
+                if !isEditing {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button("Edit") {
+                            startEditing()
+                        }
+                    }
+                } else {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button("Done") {
+                            saveChanges()
+                        }
+                        .disabled(!canSave)
+                    }
+                }
+            }
+        }
+        .onAppear {
+            loadEntryData()
+        }
+    }
+    
+    // MARK: - Display Mode
+    
+    private var displayContent: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                // Title
+                if let title = entry.title, !title.isEmpty {
+                    Text(title)
+                        .font(.title2)
+                        .fontWeight(.bold)
+                }
+                
+                if !entry.imagePath.isEmpty {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 12) {
+                            ForEach(entry.imagePath, id: \.self) { imagePath in
+                                if let image = MediaManager.shared.loadImage(from: imagePath) {
+                                    Image(uiImage: image)
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 150, height: 200)
+                                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                Text(entry.text)
+                    .font(.body)
+                
+                // Tags
+                if !entry.tags.isEmpty {
+                    FlowLayout(spacing: 8) {
+                        ForEach(entry.tags, id: \.self) { tag in
+                            Text(tag)
+                                .foregroundStyle(.black)
+                                .font(.caption)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(.white.opacity(0.25))
+                                .clipShape(Capsule())
+                                .overlay(
+                                    Capsule()
+                                        .stroke(Color.black, lineWidth: 1)
+                                )
+                        }
+                    }
+                }
+                
+                // Metadata
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Created: \(entry.timestamp, style: .date) at \(entry.timestamp, style: .time)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    
+                    if entry.lastModified != entry.timestamp {
+                        Text("Last modified: \(entry.lastModified, style: .date) at \(entry.lastModified, style: .time)")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+    
+    @ViewBuilder
+        private var backgroundGradient: some View {
+            // Use selectedMoodColor in edit mode, entry.moodColor in display mode
+            let moodColor: MoodColor? = isEditing ? selectedMoodColor : {
+                if let hexString = entry.moodColor {
+                    return MoodColor(hexString: hexString)
+                }
+                return nil
+            }()
+            
+            if let moodColor = moodColor {
+                LinearGradient(
+                    colors: [
+                        moodColor.color.opacity(0.15),           // Top-left: clean
+                        moodColor.color.opacity(0.35),      // Moving diagonally
+                        moodColor.color.opacity(0.45),      // Intensifying
+                        moodColor.color.opacity(0.3)        // Bottom-right: strongest
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .ignoresSafeArea()
+                .animation(
+                    hasLoadedInitialData ? .easeInOut(duration: 0.5) : nil,
+                    value: selectedMoodColor?.name
+                )
+            } else {
+                Color(.systemBackground)
+                    .ignoresSafeArea()
+            }
+        }
+    
+    // MARK: - Edit Mode
+    
+    private var editContent: some View {
+        Form {
+            Section("Title") {
+                TextField("Give this day a title", text: $title)
+            }
+            
+            Section("How are you feeling?") {
+                MoodColorPickerView(selectedMoodColor: $selectedMoodColor)
+            }
+            
+            Section("What's on your mind?") {
+                TextEditor(text: $text)
+                    .frame(minHeight: 150)
+            }
+            
+            Section("Photos") {
+                PhotoPicker(selectedImages: $selectedImages, maxImages: 5)
+            }
+            
+            Section("Tags") {
+                ForEach(tags, id: \.self) { tag in
+                    HStack {
+                        Text(tag)
+                        Spacer()
+                        Button(role: .destructive) {
+                            removeTag(tag)
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundStyle(.red)
+                        }
+                    }
+                }
+                
+                HStack {
+                    TextField("Add tag", text: $newTag)
+                        .onSubmit {
+                            addTag()
+                        }
+                    
+                    Button("Add") {
+                        addTag()
+                    }
+                    .disabled(newTag.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
+            }
+        }
+        .scrollContentBackground(.hidden)
+    }
+    
+    // MARK: - Data Management
+    
+    private func loadEntryData() {
+        title = entry.title ?? ""
+        text = entry.text
+        tags = entry.tags
+        selectedImages = MediaManager.shared.loadImages(from: entry.imagePath)
+        
+        if let hexString = entry.moodColor {
+            selectedMoodColor = MoodColor(hexString: hexString)
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            hasLoadedInitialData = true
+        }
+    }
+    
+    private func startEditing() {
+        loadEntryData()
+        isEditing = true
+    }
+    
+    // MARK: - Tag Management
+    
+    private func addTag() {
+        let trimmedTag = newTag.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedTag.isEmpty, !tags.contains(trimmedTag) else { return }
+        
+        tags.append(trimmedTag)
+        newTag = ""
+    }
+    
+    private func removeTag(_ tag: String) {
+        tags.removeAll { $0 == tag }
+    }
+    
+    // MARK: - Actions
+    private func hideKeyboard() {
+        UIApplication.shared.sendAction(
+            #selector(UIResponder.resignFirstResponder),
+            to: nil,
+            from: nil,
+            for: nil
+        )
+    }
+    
+    private func saveChanges() {
+        do {
+            let oldPaths = entry.imagePath
+            let newPaths = MediaManager.shared.saveImages(selectedImages)
+            
+            let pathsToDelete = oldPaths.filter { !newPaths.contains($0) }
+            MediaManager.shared.deleteImages(filenames: pathsToDelete)
+            
+            try manager.updateEntry(
+                entry,
+                title: title.isEmpty ? nil : title,
+                text: text,
+                imagePath: newPaths,
+                moodColor: selectedMoodColor?.hexString,
+                tags: tags
+            )
+            isEditing = false
+        } catch {
+            print("Failed to save changes: \(error)")
+        }
+    }
+}
+
+// MARK: - Flow Layout Helper
+
+struct FlowLayout: Layout {
+    var spacing: CGFloat = 8
+    
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let result = FlowResult(
+            in: proposal.replacingUnspecifiedDimensions().width,
+            subviews: subviews,
+            spacing: spacing
+        )
+        return result.size
+    }
+    
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let result = FlowResult(
+            in: bounds.width,
+            subviews: subviews,
+            spacing: spacing
+        )
+        for (index, subview) in subviews.enumerated() {
+            let position = CGPoint(
+                x: result.positions[index].x + bounds.origin.x,
+                y: result.positions[index].y + bounds.origin.y
+            )
+            subview.place(at: position, proposal: .unspecified)
+        }
+    }
+    
+    struct FlowResult {
+        var size: CGSize = .zero
+        var positions: [CGPoint] = []
+        
+        init(in maxWidth: CGFloat, subviews: Subviews, spacing: CGFloat) {
+            var currentPosition: CGPoint = .zero
+            var lineHeight: CGFloat = 0
+            var maxX: CGFloat = 0
+            
+            for subview in subviews {
+                let size = subview.sizeThatFits(.unspecified)
+                
+                if currentPosition.x + size.width > maxWidth && currentPosition.x > 0 {
+                    currentPosition.x = 0
+                    currentPosition.y += lineHeight + spacing
+                    lineHeight = 0
+                }
+                
+                positions.append(currentPosition)
+                lineHeight = max(lineHeight, size.height)
+                maxX = max(maxX, currentPosition.x + size.width)
+                currentPosition.x += size.width + spacing
+            }
+            
+            self.size = CGSize(width: maxX, height: currentPosition.y + lineHeight)
+        }
+    }
+}
+
+#Preview("Dark Mode") {
+    JournalEntryDetailView(entry: JournalEntryEntity.mockEntries[0])
+        .environment(JournalEntryManager(local: JournalEntryPersistence()))
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Light Mode") {
+    JournalEntryDetailView(entry: JournalEntryEntity.mockEntries[0])
+        .environment(JournalEntryManager(local: JournalEntryPersistence()))
+        .preferredColorScheme(.light)
+}

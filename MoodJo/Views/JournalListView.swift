@@ -26,7 +26,7 @@ struct JournalListView: View {
                     })
                 }
                 .sheet(item: $selectedEntry) { entry in
-                    //JournalEntryDetailView(entry: entry)
+                    JournalEntryDetailView(entry: entry)
                 }
         }
     }

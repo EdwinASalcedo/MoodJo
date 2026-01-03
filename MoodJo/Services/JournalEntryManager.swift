@@ -38,8 +38,8 @@ class JournalEntryManager {
     func createEntry(
         for date: Date,
         title: String?,
-        text: String?,
-        imagePath: String? = nil,
+        text: String,
+        imagePath: [String] = [],
         audioPath: String? = nil,
         moodColor: String?,
         tags: [String],
@@ -69,8 +69,8 @@ class JournalEntryManager {
     func updateEntry(
         _ entry: JournalEntryEntity,
         title: String?,
-        text: String?,
-        imagePath: String? = nil,
+        text: String,
+        imagePath: [String] = [],
         audioPath: String? = nil,
         moodColor: String?,
         tags: [String]
@@ -88,6 +88,11 @@ class JournalEntryManager {
     
     func deleteEntry(_ entry: JournalEntryEntity) {
         do {
+            MediaManager.shared.deleteImages(filenames: entry.imagePath)
+            if let audioPath = entry.audioPath {
+                MediaManager.shared.deleteAudio(filename: audioPath)
+            }
+            
             try local.deleteEntry(entry)
             fetchEntries()
         } catch {
@@ -148,7 +153,7 @@ class JournalEntryManager {
                     return true
                 }
                 // Search in text content
-                if let text = entry.text, text.localizedCaseInsensitiveContains(searchText) {
+                if entry.text.localizedCaseInsensitiveContains(searchText) {
                     return true
                 }
                 // Search in tags
