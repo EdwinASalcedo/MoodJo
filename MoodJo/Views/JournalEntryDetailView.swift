@@ -27,13 +27,23 @@ struct JournalEntryDetailView: View {
     @State private var selectedImageIndex = 0
     @State private var loadedImages: [UIImage] = []
     
+    private var moodColor: MoodColor? {
+        guard let moodString = entry.moodColor else { return nil }
+        
+        // Try new encoded format first, fallback to hex for legacy data
+        if let mood = MoodColor(encodedValue: moodString) {
+            return mood
+        } else if let mood = MoodColor(hexString: moodString) {
+            return mood
+        }
+        return nil
+    }
+    
     @Namespace private var imageNamespace
     
     @FocusState private var isAnyFieldFocused: Bool
     
-    var canSave: Bool {
-        !text.isEmpty
-    }
+    var canSave: Bool { !text.isEmpty }
     
     var body: some View {
         NavigationStack {
@@ -101,7 +111,7 @@ struct JournalEntryDetailView: View {
                 // Title
                 if let title = entry.title, !title.isEmpty {
                     Text(title)
-                        .font(.title2)
+                        .font(.title)
                         .fontWeight(.bold)
                 }
                 
@@ -119,7 +129,7 @@ struct JournalEntryDetailView: View {
                                     .matchedGeometryEffect(
                                         id: "image-\(index)",
                                         in: imageNamespace,
-//                                        isSource: !isSelectedAndShowing
+                                    //isSource: !isSelectedAndShowing
                                     )
                                     .opacity(isSelectedAndShowing ? 0 : 1)
                                     .onTapGesture {
@@ -134,7 +144,12 @@ struct JournalEntryDetailView: View {
                 }
                 
                 Text(entry.text)
-                    .font(.body)
+                    .font(.title3)
+                    .fontWeight(.medium)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(16)
+                    .background(.ultraThinMaterial.opacity(0.7))
+                    .cornerRadius(16)
                 
                 // Tags
                 if !entry.tags.isEmpty {
@@ -173,38 +188,6 @@ struct JournalEntryDetailView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
-    
-    @ViewBuilder
-        private var backgroundGradient: some View {
-            // Use selectedMoodColor in edit mode, entry.moodColor in display mode
-            let moodColor: MoodColor? = isEditing ? selectedMoodColor : {
-                if let hexString = entry.moodColor {
-                    return MoodColor(hexString: hexString)
-                }
-                return nil
-            }()
-            
-            if let moodColor = moodColor {
-                LinearGradient(
-                    colors: [
-                        moodColor.color.opacity(0.15),           // Top-left: clean
-                        moodColor.color.opacity(0.35),      // Moving diagonally
-                        moodColor.color.opacity(0.45),      // Intensifying
-                        moodColor.color.opacity(0.3)        // Bottom-right: strongest
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
-                .animation(
-                    hasLoadedInitialData ? .easeInOut(duration: 0.5) : nil,
-                    value: selectedMoodColor?.name
-                )
-            } else {
-                Color(.systemBackground)
-                    .ignoresSafeArea()
-            }
-        }
     
     // MARK: - Edit Mode
     
@@ -261,6 +244,30 @@ struct JournalEntryDetailView: View {
         .scrollContentBackground(.hidden)
     }
     
+    @ViewBuilder
+    private var backgroundGradient: some View {
+        if let moodColor = moodColor {
+            LinearGradient(
+                colors: [
+                    moodColor.color.opacity(0.45),
+                    moodColor.color.opacity(0.65),
+                    moodColor.color.opacity(0.75),
+                    moodColor.color.opacity(0.5)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+            .animation(
+                hasLoadedInitialData ? .easeInOut(duration: 0.5) : nil,
+                value: selectedMoodColor?.name
+            )
+        } else {
+            Color(.systemBackground)
+                .ignoresSafeArea()
+        }
+    }
+    
     // MARK: - Data Management
     
     private func loadEntryData() {
@@ -269,8 +276,13 @@ struct JournalEntryDetailView: View {
         tags = entry.tags
         selectedImages = MediaManager.shared.loadImages(from: entry.imagePath)
         
-        if let hexString = entry.moodColor {
-            selectedMoodColor = MoodColor(hexString: hexString)
+        if let moodString = entry.moodColor {
+            // Try new encoded format first, fallback to hex for legacy data
+            if let mood = MoodColor(encodedValue: moodString) {
+                selectedMoodColor = mood
+            } else if let mood = MoodColor(hexString: moodString) {
+                selectedMoodColor = mood
+            }
         }
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
@@ -316,7 +328,7 @@ struct JournalEntryDetailView: View {
                 title: title.isEmpty ? nil : title,
                 text: text,
                 imagePath: newPaths,
-                moodColor: selectedMoodColor?.hexString,
+                moodColor: selectedMoodColor?.encodedValue,
                 tags: tags
             )
             
@@ -324,64 +336,6 @@ struct JournalEntryDetailView: View {
             isEditing = false
         } catch {
             print("Failed to save changes: \(error)")
-        }
-    }
-}
-
-// MARK: - Flow Layout Helper
-
-struct FlowLayout: Layout {
-    var spacing: CGFloat = 8
-    
-    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
-        let result = FlowResult(
-            in: proposal.replacingUnspecifiedDimensions().width,
-            subviews: subviews,
-            spacing: spacing
-        )
-        return result.size
-    }
-    
-    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
-        let result = FlowResult(
-            in: bounds.width,
-            subviews: subviews,
-            spacing: spacing
-        )
-        for (index, subview) in subviews.enumerated() {
-            let position = CGPoint(
-                x: result.positions[index].x + bounds.origin.x,
-                y: result.positions[index].y + bounds.origin.y
-            )
-            subview.place(at: position, proposal: .unspecified)
-        }
-    }
-    
-    struct FlowResult {
-        var size: CGSize = .zero
-        var positions: [CGPoint] = []
-        
-        init(in maxWidth: CGFloat, subviews: Subviews, spacing: CGFloat) {
-            var currentPosition: CGPoint = .zero
-            var lineHeight: CGFloat = 0
-            var maxX: CGFloat = 0
-            
-            for subview in subviews {
-                let size = subview.sizeThatFits(.unspecified)
-                
-                if currentPosition.x + size.width > maxWidth && currentPosition.x > 0 {
-                    currentPosition.x = 0
-                    currentPosition.y += lineHeight + spacing
-                    lineHeight = 0
-                }
-                
-                positions.append(currentPosition)
-                lineHeight = max(lineHeight, size.height)
-                maxX = max(maxX, currentPosition.x + size.width)
-                currentPosition.x += size.width + spacing
-            }
-            
-            self.size = CGSize(width: maxX, height: currentPosition.y + lineHeight)
         }
     }
 }

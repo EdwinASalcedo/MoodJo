@@ -59,7 +59,7 @@ final class JournalEntryEntity {
                 lastModified: Date(),
                 title: "Amazing Day at the Beach",
                 text: "Spent the entire day at the beach with friends. The weather was perfect and we played volleyball until sunset. Feeling grateful for these moments!",
-                moodColor: MoodColor(color: .yellow, name: "Happy").hexString,
+                moodColor: MoodColor(hue: .yellow, energy: .high, valence: .positive).encodedValue, // Joyful
                 tags: ["beach", "friends", "grateful"],
                 isFavorite: true
             ),
@@ -69,7 +69,7 @@ final class JournalEntryEntity {
                 lastModified: Calendar.current.date(byAdding: .day, value: -1, to: Date())!,
                 title: "Productive Work Day",
                 text: "Finally finished that project I've been working on for weeks. Team meeting went well and got great feedback from my manager.",
-                moodColor: MoodColor(color: .green, name: "Peaceful").hexString,
+                moodColor: MoodColor(hue: .green, energy: .low, valence: .positive).encodedValue, // Peaceful
                 tags: ["work", "productive", "achievement"]
             ),
             
@@ -78,7 +78,7 @@ final class JournalEntryEntity {
                 lastModified: Calendar.current.date(byAdding: .day, value: -2, to: Date())!,
                 title: nil,
                 text: "Feeling a bit anxious about the upcoming presentation. Need to practice more and get everything organized.",
-                moodColor: MoodColor(color: .purple, name: "Anxious").hexString,
+                moodColor: MoodColor(hue: .yellow, energy: .high, valence: .negative).encodedValue, // Anxious
                 tags: ["work", "anxious"]
             ),
             
@@ -87,7 +87,7 @@ final class JournalEntryEntity {
                 lastModified: Calendar.current.date(byAdding: .day, value: -3, to: Date())!,
                 title: "Morning Run",
                 text: "Woke up early and went for a 5-mile run. The sunrise was beautiful and I feel so energized for the day ahead!",
-                moodColor: MoodColor(color: .orange, name: "Energetic").hexString,
+                moodColor: MoodColor(hue: .orange, energy: .high, valence: .positive).encodedValue, // Thrilled
                 tags: ["exercise", "morning", "health"],
                 isFavorite: true
             ),
@@ -97,7 +97,7 @@ final class JournalEntryEntity {
                 lastModified: Calendar.current.date(byAdding: .day, value: -4, to: Date())!,
                 title: "Quiet Sunday",
                 text: "Just a calm, relaxing day at home. Read a book, did some cooking, and enjoyed the peace and quiet.",
-                moodColor: MoodColor(color: .blue, name: "Calm").hexString,
+                moodColor: MoodColor(hue: .blue, energy: .low, valence: .positive).encodedValue, // Serene
                 tags: ["relaxing", "home", "self-care"]
             ),
             
@@ -106,7 +106,7 @@ final class JournalEntryEntity {
                 lastModified: Calendar.current.date(byAdding: .day, value: -5, to: Date())!,
                 title: "Date Night",
                 text: "Had the most wonderful dinner date tonight. Tried that new Italian restaurant downtown and it was amazing. Feeling so loved!",
-                moodColor: MoodColor(color: .pink, name: "Loved").hexString,
+                moodColor: MoodColor(hue: .red, energy: .medium, valence: .positive).encodedValue, // Loving
                 tags: ["date", "love", "food"],
                 isFavorite: true
             ),
@@ -116,7 +116,7 @@ final class JournalEntryEntity {
                 lastModified: Calendar.current.date(byAdding: .day, value: -6, to: Date())!,
                 title: "Rough Day",
                 text: "Everything seemed to go wrong today. Spilled coffee, missed the bus, and had a headache all afternoon. Tomorrow will be better.",
-                moodColor: MoodColor(color: .indigo, name: "Sad").hexString,
+                moodColor: MoodColor(hue: .blue, energy: .low, valence: .negative).encodedValue, // Depressed
                 tags: ["difficult", "frustrated"]
             ),
             
@@ -125,7 +125,7 @@ final class JournalEntryEntity {
                 lastModified: Calendar.current.date(byAdding: .day, value: -7, to: Date())!,
                 title: "Family Gathering",
                 text: "Big family BBQ today. It was chaotic but fun seeing everyone together. Kids were running around and there was so much laughter.",
-                moodColor: MoodColor(color: .yellow, name: "Happy").hexString,
+                moodColor: MoodColor(hue: .yellow, energy: .high, valence: .positive).encodedValue, // Joyful
                 tags: ["family", "celebration", "kids"]
             ),
             
@@ -134,7 +134,7 @@ final class JournalEntryEntity {
                 lastModified: Calendar.current.date(byAdding: .day, value: -8, to: Date())!,
                 title: nil,
                 text: "Not much happened today. Just went through the motions. Feeling kind of neutral about everything.",
-                moodColor: MoodColor(color: .gray, name: "Neutral").hexString,
+                moodColor: MoodColor(hue: .green, energy: .medium, valence: .neutral).encodedValue, // Balanced
                 tags: ["ordinary"]
             ),
             
@@ -143,7 +143,7 @@ final class JournalEntryEntity {
                 lastModified: Calendar.current.date(byAdding: .day, value: -9, to: Date())!,
                 title: "Started New Hobby",
                 text: "Signed up for pottery classes! First session was tonight and I absolutely loved it. Can't wait to go back next week.",
-                moodColor: MoodColor(color: .orange, name: "Energetic").hexString,
+                moodColor: MoodColor(hue: .purple, energy: .medium, valence: .positive).encodedValue, // Creative
                 tags: ["hobby", "creative", "pottery"],
                 isFavorite: true
             )

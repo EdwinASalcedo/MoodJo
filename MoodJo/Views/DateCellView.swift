@@ -16,9 +16,9 @@ struct DateCellView: View {
         HStack(alignment: .center, spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
                 HStack {
-                    Text(entry.timestamp, style: .date)
+                    Text(entry.timestamp.formatted(.dateTime.weekday().day().month().year()))
                         .font(.title2)
-                        .fontWeight(.medium)
+                        .fontWeight(.bold)
                     
                     if entry.isFavorite {
                         Image(systemName: "star.fill")
@@ -30,11 +30,12 @@ struct DateCellView: View {
                 if let title = entry.title, !title.isEmpty {
                     Text(title)
                         .font(.title3)
-                        .bold()
+                        .fontWeight(.medium)
                         .lineLimit(1)
                 } else {
                     Text("No title")
                         .font(.title3)
+                        .fontWeight(.medium)
                         .italic()
                 }
                 
@@ -100,8 +101,20 @@ struct DateCellView: View {
         .padding(.top, 4)
     }
     
+    private var moodColor: MoodColor? {
+        guard let moodString = entry.moodColor else { return nil }
+        
+        // Try new encoded format first, fallback to hex for legacy data
+        if let mood = MoodColor(encodedValue: moodString) {
+            return mood
+        } else if let mood = MoodColor(hexString: moodString) {
+            return mood
+        }
+        return nil
+    }
+    
     private var backgroundGradient: LinearGradient {
-        if let hexString = entry.moodColor, let moodColor = MoodColor(hexString: hexString) {
+        if let moodColor = moodColor {
             return LinearGradient(
                 colors: [
                     moodColor.color.opacity(0.65),
@@ -124,8 +137,7 @@ struct DateCellView: View {
     
     // Computed property for stroke color
     private var strokeColor: Color {
-        if let hexString = entry.moodColor,
-            let moodColor = MoodColor(hexString: hexString) {
+        if let moodColor = moodColor {
             return moodColor.color.opacity(0.9)
         } else {
             return Color.gray.opacity(0.2)

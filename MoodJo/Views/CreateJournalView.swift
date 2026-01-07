@@ -73,7 +73,7 @@ struct CreateJournalView: View {
                             .focused($isAnyFieldFocused)
                     }
                     
-                    Section("Mood (Optional)") {
+                    Section("Mood") {
                         MoodColorPickerView(selectedMoodColor: $selectedMoodColor)
                     }
                     
@@ -193,7 +193,7 @@ struct CreateJournalView: View {
                 title: title.isEmpty ? nil : title,
                 text: text,
                 imagePath: imagePaths,
-                moodColor: selectedMoodColor?.hexString,
+                moodColor: selectedMoodColor?.encodedValue,
                 tags: tags
             )
             onDismiss()
