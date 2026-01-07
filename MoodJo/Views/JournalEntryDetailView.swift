@@ -126,6 +126,8 @@ struct JournalEntryDetailView: View {
                                     .scaledToFill()
                                     .frame(width: 150, height: 200)
                                     .clipShape(RoundedRectangle(cornerRadius: 16))
+                                    .padding(6)
+                                    .shadow(color: .black.opacity(0.7), radius: 3, x: 0, y: 2)
                                     .matchedGeometryEffect(
                                         id: "image-\(index)",
                                         in: imageNamespace,
